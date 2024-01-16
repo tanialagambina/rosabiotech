@@ -1799,26 +1799,26 @@ def make_report(
 
 
     class PDF(FPDF):
-        def header(self):
-            self.image('/Users/tanialagambina/Documents/Rosa Biotech logo M.png', x=170, y=8, w=30)
+        # def header(self):
+            # self.image('/Users/tanialagambina/Documents/Rosa Biotech logo M.png', x=170, y=8, w=30)
         def footer(self):
             self.set_y(-15)
             self.set_font('Arial', '', 8)
             self.cell(0, 10, str(self.page_no()), 0, 0, 'C')
     pdf = PDF()
-    pdf.add_font('Arial Nova Light', '', "/Users/tanialagambina/anaconda3/lib/python3.10/site-packages/fpdf/Arial Nova Light.ttf", uni=True)
+    # pdf.add_font('Arial Nova Light', '', "/Users/tanialagambina/anaconda3/lib/python3.10/site-packages/fpdf/Arial Nova Light.ttf", uni=True)
 
     pdf.add_page()
     #----------------------------------------------------------------------------------------------------------------------
     # Page 1
 
-    pdf.set_font('Arial Nova Light', '', 16)
+    pdf.set_font('Arial', '', 16)
     pdf.cell(40, 10, project, ln=1)
     # pdf.ln(1)
-    pdf.set_font('Arial Nova Light', '', 12)
+    pdf.set_font('Arial', '', 12)
     pdf.cell(40, 5, '{} Report'.format(title), ln=1)
     # pdf.ln(1)
-    pdf.set_font('Arial Nova Light','', 10)
+    pdf.set_font('Arial','', 10)
     if ('report_description' in keyword_parameters.keys()):
         report_description = keyword_parameters['report_description']
         pdf.cell(40, 5, report_description, ln=1)
@@ -1827,7 +1827,7 @@ def make_report(
         pass
     pdf.cell(40, 5, '{}'.format(todaydate), ln=1)
     pdf.ln(2)
-    pdf.set_font('Arial Nova Light','', 10)
+    pdf.set_font('Arial','', 10)
 
     pdf.cell(40, 5, 'The analyte IDs used in this analysis were:', ln=1)
     # pdf.ln(2)
@@ -1839,7 +1839,7 @@ def make_report(
     for x in f:
         pdf.multi_cell(0, 4, txt = x)
     pdf.ln(1)
-    pdf.set_font('Arial Nova Light','', 10)
+    pdf.set_font('Arial','', 10)
     pdf.cell(30, 5, 'Data visualisations on the full dataset', ln=1)
     # pdf.ln(3)
     pdf.set_font('Courier','', 8)
@@ -1865,7 +1865,7 @@ def make_report(
     pdf.ln(2)
     # pdf.image(path+'Median Full Array Superplot.png', w=205, y=190, x=3)
     pdf.image(path+'Median Full Array Superplot.png', w=190, x=10)
-    pdf.set_font('Arial Nova Light','', 10)
+    pdf.set_font('Arial','', 10)
     # pdf.set_xy(x=10, y= 215)
     pdf.set_x(x=10)
     pdf.cell(17,10, '')
@@ -1901,10 +1901,10 @@ def make_report(
     # Page 2
 
     pdf.ln(10)
-    pdf.set_font('Arial Nova Light','', 12)
+    pdf.set_font('Arial','', 12)
     pdf.cell(40, 5, 'Model Training')
     pdf.ln(5)
-    pdf.set_font('Arial Nova Light','', 10)
+    pdf.set_font('Arial','', 10)
     pdf.cell(40, 5, 'Train dataset top 3 features and train dataset PCA for optimimum number of input features', ln=1)
     # pdf.ln(10)
     pdf.set_font('Courier','', 8)
@@ -1917,7 +1917,7 @@ def make_report(
     pdf.image(path+'Model Score vs Number of Features.png', x=30, y=105, h=55)
     # pdf.ln(5)
     pdf.set_xy(x=10, y=160)
-    pdf.set_font('Arial Nova Light','', 10)
+    pdf.set_font('Arial','', 10)
 
     pdf.cell(40,10, 'Best Model Results')
 
@@ -1938,7 +1938,7 @@ def make_report(
     pdf.add_page()
     #------------------------------------------------------------------------------------------------------------------
     # Page 3
-    pdf.set_font('Arial Nova Light','', 10)
+    pdf.set_font('Arial','', 10)
     pdf.ln(5)
     pdf.cell(40, 10, 'Experiment Information')
     pdf.ln(10)

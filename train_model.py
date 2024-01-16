@@ -30,6 +30,8 @@ from sklearn.preprocessing import StandardScaler
 import math
 from math import sqrt
 from imblearn.pipeline import Pipeline
+from production import train_model, analysis
+import joblib
 
 def split_train_test_data(
         data,
@@ -290,7 +292,6 @@ def pca_scatter(
     else:
         pca_scatter_df = pca_scatter_df
 
-    # pca_scatter_df = pd.concat([df, y_df], axis=1)
     plt.clf()
     if ('figsize' in keyword_parameters.keys()):
         figsize = keyword_parameters['figsize']
@@ -309,7 +310,6 @@ def pca_scatter(
         "xtick.labelsize":15,
         "ytick.labelsize":15
     })
-    # labels = str(y_df['Target'].unique())
 
     if ('colors' in keyword_parameters.keys()):
         colors = keyword_parameters['colors']
@@ -362,7 +362,6 @@ def pca_scatter(
                 s=size,
                 ax=ax,
                 data=pca_scatter_df
-                # palette=customPalette
                             )
     else:
         if ('y_data' in keyword_parameters.keys()):
@@ -462,7 +461,6 @@ def lda_scatter(
     else:
         lda_scatter_df = pd.concat([df, y_df], axis=1)
 
-    # pca_scatter_df = pd.concat([df, y_df], axis=1)
     plt.clf()
     fig, ax = plt.subplots(
         figsize=(6, 6)
@@ -540,16 +538,6 @@ def lda_scatter(
         ncol=1,
         markerscale=3
         )
-    # if ('save' in keyword_parameters.keys()):
-    #     if keyword_parameters['save'] is True:
-    #         cwd = os.getcwd()
-    #         path = cwd+'/Results/'
-    #         os.makedirs(os.path.dirname(path), exist_ok=True)
-    #         fig.savefig(path+'{} {} features LDA plot.png'.format(labels, str(len(self.x_train[0]))), bbox_inches='tight')
-    #     else:
-    #         pass
-    # else:
-    #     pass
 
     plt.show()
     # sns.reset_defaults()
@@ -610,10 +598,6 @@ def run_lda_and_transform(x, y):
     AUTHOR:
         Tania LaGambina
     """
-
-    from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-    from sklearn.preprocessing import StandardScaler
-    from imblearn.pipeline import Pipeline
     pipe = Pipeline([
             ('scaling', StandardScaler()),
             ('dimension_reduction', LDA())])
@@ -627,10 +611,6 @@ def run_lda_and_transform_traintest(x_train, x_test, y_train):
     AUTHOR:
         Tania LaGambina
     """
-
-    from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-    from sklearn.preprocessing import StandardScaler
-    from imblearn.pipeline import Pipeline
     pipe = Pipeline([
             ('scaling', StandardScaler()),
             ('dimension_reduction', LDA())])
@@ -703,7 +683,6 @@ def pca_scatter_labelled(
     else:
         pca_scatter_df = pd.concat([df, id_df], axis=1)
 
-    # pca_scatter_df = pd.concat([df, y_df], axis=1)
     plt.clf()
     if ('figsize' in keyword_parameters.keys()):
         figsize = keyword_parameters['figsize']
@@ -722,7 +701,6 @@ def pca_scatter_labelled(
         "xtick.labelsize":15,
         "ytick.labelsize":15
     })
-    # labels = str(y_df['Target'].unique())
 
     if ('colors' in keyword_parameters.keys()):
         colors = keyword_parameters['colors']
@@ -793,12 +771,9 @@ def pca_scatter_labelled(
             sns.scatterplot(
                 x="Component 1",
                 y="Component 2",
-                # hue_order = hue_order,
-                # hue="Target",
                 s=size,
                 ax=ax,
                 data=pca_scatter_df
-                # palette=customPalette
                 )
     for i in range(pca_scatter_df.shape[0]):
         plt.text(
@@ -1074,9 +1049,7 @@ class RunML():
             param_distributions=self.params,
             n_iter=n_iter,
             scoring='accuracy',
-            # n_jobs=0,
             cv=self.cv,
-            # iid=False, # depreciated in sklearn 0.24
             error_score=np.nan
             )
         random_search.fit(
@@ -1111,18 +1084,12 @@ class RunML():
 
         """
         from sklearn.model_selection import GridSearchCV
-        from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
-        from imblearn.pipeline import Pipeline
 
         grid_search = GridSearchCV(
             estimator=clf,
             param_grid=self.params,
             scoring='accuracy',
-            # n_jobs=0,
             cv=self.cv,
-            # iid=False, # depreciated in sklearn 0.24
             error_score=np.nan
             )
         grid_search.fit(
@@ -1130,7 +1097,6 @@ class RunML():
             y=self.y_train,
             groups=self.train_groups
             )
-
 
         return grid_search
 
@@ -1156,11 +1122,9 @@ class RunML():
             Developed for Rosa Biotech by Tania LaGambina
         """
 
-        pipe = clf
-
         if len(self.y_train) > 7:
             scores = cross_val_score(
-                estimator=pipe,
+                estimator=clf,
                 X=self.x_train,
                 y=self.y_train,
                 groups=self.train_groups,
@@ -1170,12 +1134,11 @@ class RunML():
                 # cv=RepeatedKFold(n_splits=5, n_repeats=3, random_state=self.random_state),
                 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=self.random_state),
                 # cv=LeaveOneOut(),
-                # n_jobs=-1,
                 error_score=np.nan
                 )
         else:
             scores = cross_val_score(
-                estimator=pipe,
+                estimator=clf,
                 X=self.x_train,
                 y=self.y_train,
                 groups=self.train_groups,
@@ -1185,11 +1148,8 @@ class RunML():
                 # cv=RepeatedKFold(n_repeats=3, random_state=self.random_state),
                 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=self.random_state),
                 # cv=LeaveOneOut(),
-                # n_jobs=-1,
                 error_score=np.nan
                 )
-        # print(self.train_groups)
-        # print("Cross validation split used: {}".format(self.cv.n_splits))
         if ('save' in keyword_parameters.keys()) and (keyword_parameters['save'] is True) and ('path' in keyword_parameters.keys()):
             path = keyword_parameters['path']
             with open(path+"Model Results.txt", "a") as f:
@@ -1197,16 +1157,15 @@ class RunML():
                                 scores.mean(), (scores.std())), file=f)
         print('\033[1m' + 'Model cross-validation score accuracy: %0.2f (%0.2f)' % (
                         scores.mean(), (scores.std())) + '\033[0m')
-        # print(scores)
         self.scores = scores
         self.std = scores.std()
         self.cvmean = scores.mean()
         # self.standarderror = (scores.std())/sqrt(self.cv.n_splits)
         self.standarddeviation = (scores.std())
 
-        pipe.fit(X=self.x_train, y=self.y_train)
+        clf.fit(X=self.x_train, y=self.y_train)
 
-        return pipe
+        return clf
 
     def test_model(
             self,
@@ -1237,7 +1196,6 @@ class RunML():
         from sklearn.utils.multiclass import unique_labels
 
         predictions = clf.predict(self.x_test)
-        print(predictions)
         try:
             accuracy = accuracy_score(y_true=self.y_test, y_pred=predictions)
             if len(np.unique(self.y_test)) == 2:
@@ -1315,7 +1273,7 @@ class RunML():
                     print('FN {}'.format(fn))
                     print('TP {}'.format(tp))
                 test_accuracy = (tn + tp)/(tn + fp + fn + tp)
-
+                # Calculating the 95% confidence interval
                 ci95 = 1.96*math.sqrt((test_accuracy*(1-test_accuracy))/(tn + fp + fn + tp))
                 if ('save' in keyword_parameters.keys()):
                     if (keyword_parameters['save'] is True) and ('path' in keyword_parameters.keys()):
@@ -1326,9 +1284,6 @@ class RunML():
                         print('The test set accuracy is %0.2f with a 95%% confidence interval of +/- %0.2f' % (test_accuracy, ci95))
                 else:
                     print('The test set accuracy is %0.2f with a 95%% confidence interval of +/- %0.2f' % (test_accuracy, ci95))
-
-                # print(test_accuracy)
-                # print(ci95)
             else:
                 pass
 
@@ -1400,10 +1355,6 @@ class RunML():
         """
 
         from sklearn.linear_model import LogisticRegression
-        from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
-        from imblearn.pipeline import Pipeline
 
         if ('save' in keyword_parameters.keys()):
             save = keyword_parameters['save']
@@ -1426,7 +1377,6 @@ class RunML():
             elif self.technique == 'None':
                 pipe = Pipeline([
                         ('standardising', StandardScaler()),
-                        # ('dimension_reduction', PCA(random_state=self.random_state)),
                         ('model', clf)]
                         )
             else:
@@ -1452,7 +1402,6 @@ class RunML():
         elif self.technique == 'None':
             pipe = Pipeline([
                     ('standardising', StandardScaler()),
-                    # ('dimension_reduction', PCA(random_state=self.random_state)),
                     ('model', clf)]
                     )
         else:
@@ -1492,7 +1441,6 @@ class RunML():
             **keyword_parameters
             ):
         """
-
         Wrapper function for training with a K Nearest Neighbours model.
         K nearest neighbours is a simple statisical model that works by comparing
         each data point to the points around it. Where the closest points are,
@@ -1516,10 +1464,6 @@ class RunML():
         """
 
         from sklearn.neighbors import KNeighborsClassifier
-        from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
-        from imblearn.pipeline import Pipeline
 
         if ('save' in keyword_parameters.keys()):
             save = keyword_parameters['save']
@@ -1537,7 +1481,6 @@ class RunML():
             elif self.technique == 'None':
                 pipe = Pipeline([
                         ('standardising', StandardScaler()),
-                        # ('dimension_reduction', PCA()),
                         ('model', clf)]
                         )
             else:
@@ -1563,7 +1506,6 @@ class RunML():
         elif self.technique == 'None':
             pipe = Pipeline([
                     ('standardising', StandardScaler()),
-                    # ('dimension_reduction', PCA()),
                     ('model', clf)]
                     )
         else:
@@ -1619,10 +1561,6 @@ class RunML():
         """
 
         from sklearn.naive_bayes import GaussianNB
-        from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
-        from imblearn.pipeline import Pipeline
 
         if ('save' in keyword_parameters.keys()):
             save = keyword_parameters['save']
@@ -1677,7 +1615,6 @@ class RunML():
             **keyword_parameters
             ):
         """
-
         OUTPUTS:
         - clf: The trained model object
 
@@ -1687,8 +1624,6 @@ class RunML():
         """
 
         from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-        from sklearn.preprocessing import StandardScaler
-        from imblearn.pipeline import Pipeline
 
         if ('save' in keyword_parameters.keys()):
             save = keyword_parameters['save']
@@ -1753,16 +1688,11 @@ class RunML():
         """
 
         from sklearn.svm import SVC
-        from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
-        from imblearn.pipeline import Pipeline
 
         if ('save' in keyword_parameters.keys()):
             save = keyword_parameters['save']
         else:
             save = False
-        random_seed = 5
         hyperopt = hyperopt.lower().replace(' ', '')
         if hyperopt in ['randomsearch', 'gridsearch']:
             clf = SVC(probability=True)
@@ -1775,7 +1705,6 @@ class RunML():
             elif self.technique == 'None':
                 pipe = Pipeline([
                         ('standardising', StandardScaler()),
-                        # ('dimension_reduction', PCA(random_state=self.random_state)),
                         ('model', clf)]
                         )
             else:
@@ -1801,7 +1730,6 @@ class RunML():
         elif self.technique == 'None':
             pipe = Pipeline([
                     ('standardising', StandardScaler()),
-                    # ('dimension_reduction', PCA(random_state=self.random_state)),
                     ('model', clf)]
                     )
         else:
@@ -1863,16 +1791,11 @@ class RunML():
         """
 
         from sklearn.ensemble import RandomForestClassifier
-        from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
-        from imblearn.pipeline import Pipeline
 
         if ('save' in keyword_parameters.keys()):
             save = keyword_parameters['save']
         else:
             save = False
-        random_seed = 5
         hyperopt = hyperopt.lower().replace(' ', '')
         if hyperopt in ['randomsearch', 'gridsearch']:
             clf = RandomForestClassifier()
@@ -1885,7 +1808,6 @@ class RunML():
             elif self.technique == 'None':
                 pipe = Pipeline([
                         ('standardising', StandardScaler()),
-                        # ('dimension_reduction', PCA()),
                         ('model', clf)]
                         )
             else:
@@ -1911,7 +1833,6 @@ class RunML():
         elif self.technique == 'None':
             pipe = Pipeline([
                     ('standardising', StandardScaler()),
-                    # ('dimension_reduction', PCA()),
                     ('model', clf)]
                     )
         else:
@@ -1966,10 +1887,6 @@ class RunML():
             Tania LaGambina
         """
         from sklearn.neural_network import MLPClassifier
-        from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
-        from imblearn.pipeline import Pipeline
 
         if ('save' in keyword_parameters.keys()):
             save = keyword_parameters['save']
@@ -1987,7 +1904,6 @@ class RunML():
             elif self.technique == 'None':
                 pipe = Pipeline([
                         ('standardising', StandardScaler()),
-                        # ('dimension_reduction', PCA(random_state=self.random_state)),
                         ('model', clf)]
                         )
             else:
@@ -2013,7 +1929,6 @@ class RunML():
         elif self.technique == 'None':
             pipe = Pipeline([
                     ('standardising', StandardScaler()),
-                    # ('dimension_reduction', PCA(random_state=self.random_state)),
                     ('model', clf)]
                     )
         else:
@@ -2053,7 +1968,6 @@ class RunML():
             **keyword_parameters
             ):
         """
-
         OUTPUTS:
         - clf: The trained model object
 
@@ -2062,10 +1976,6 @@ class RunML():
         """
 
         from sklearn.dummy import DummyClassifier
-        from imblearn.pipeline import Pipeline
-        from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
 
         if ('save' in keyword_parameters.keys()):
             save = keyword_parameters['save']
@@ -2246,10 +2156,7 @@ class RunML():
         """
 
         from sklearn.dummy import DummyClassifier
-        from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
-        from imblearn.pipeline import Pipeline
+
         if ('save' in keyword_parameters.keys()):
             save = keyword_parameters['save']
         else:
@@ -2385,11 +2292,6 @@ def ml_wrapper(
     AUTHOR:
         Tania LaGambina
     """
-    import numpy as np
-    import pandas as pd
-    from production import train_model, analysis
-    import joblib
-
     score = {}
     if ('colors' in keyword_parameters.keys()):
         colors = keyword_parameters['colors']
@@ -2405,7 +2307,6 @@ def ml_wrapper(
         ]
     if ('hue_order' in keyword_parameters.keys()):
         hue_order = keyword_parameters['hue_order']
-        # self.labels = hue_order
     else:
         hue_order = parsed_data[target_col].unique()
 
@@ -2413,11 +2314,6 @@ def ml_wrapper(
         seed = keyword_parameters['seed']
     else:
         seed = 42
-    # if ('path' in keyword_parameters.keys()):
-    #     path = keyword_parameters['path']
-    #     os.makedirs(os.path.dirname(path), exist_ok=True)
-    # else:
-    #     path = os.getcwd()+'/Results'
 
     for n in range(parsed_data.shape[0]):
         if n>low_feat_no and n<high_feat_no:
@@ -2484,9 +2380,6 @@ def ml_wrapper(
                 else:
                     technique = 'PCA'
                     pca_x_train, pca_x_test = train_model.run_pca_and_transform_traintest(x_train=x_train, x_test=x_test, seed=seed)
-                    # pca = train_model.PCATools(x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test, seed=seed)
-                    # pca.run_pca()
-                    # pca_x_train, pca_x_test = pca.run_pca_and_transform()
                     try:
                         scatter = train_model.pca_scatter(pca_x_data=pca_x_train, y_data=y_train, colors=colors, hue_order=hue_order)
                         if (save is True) and ('path' in keyword_parameters.keys()):
@@ -2498,9 +2391,6 @@ def ml_wrapper(
             else:
                 technique = 'PCA'
                 pca_x_train, pca_x_test = train_model.run_pca_and_transform_traintest(x_train=x_train, x_test=x_test, seed=seed)
-                # pca = train_model.PCATools(x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test, seed=seed)
-                # pca.run_pca()
-                # pca_x_train, pca_x_test = pca.run_pca_and_transform()
                 try:
                     scatter = train_model.pca_scatter(pca_x_data=pca_x_train, y_data=y_train, colors=colors, hue_order=hue_order)
                     if (save is True) and ('path' in keyword_parameters.keys()):
@@ -2707,19 +2597,15 @@ def ml_wrapper(
             pass
     if ('save' in keyword_parameters.keys()) and (keyword_parameters['save'] is True):
         if ('stds' in keyword_parameters.keys()):
-            # return score, optimum_score, results, names, stds
             return results, names, stds, aucs
 
         else:
-            # return score, optimum_score, results, names
             return results, names, aucs
     else:
         if ('stds' in keyword_parameters.keys()):
-            # return score, optimum_score, results, names, stds
             return results, names, stds, aucs
 
         else:
-            # return score, optimum_score, results, names
             return results, names, aucs
 
 def determine_best_model(results, names):
