@@ -96,7 +96,6 @@ def min_max_scale(processed_data):
         experiment_data = copy.deepcopy(
             processed_data[processed_data['EXPERIMENT_ID']==experiment])
         experiment_data.dropna(axis=1, inplace=True)
-        # print(experiment_data)
 
         try:
             experiment_blank_data = copy.deepcopy(
@@ -105,7 +104,6 @@ def min_max_scale(processed_data):
             raise PlateLayoutError('No blank readings included on plate')
         scaled_plate = {}
         analytes = [analyte for analyte in list(experiment_data['ANALYTE_ID']) if analyte != 'Blank']
-        # min_max_data = pd.DataFrame(columns=['EXPERIMENT_ID', 'ANALYTE_ID'])
 
         for analyte in analytes:
             min_max_data = pd.DataFrame(columns=['EXPERIMENT_ID', 'ANALYTE_ID'])
@@ -118,7 +116,6 @@ def min_max_scale(processed_data):
 
                     dye = column.split(' ')[-1]
                     min_fluor_an = analyte_experiment_data['No Pep'+' '+dye].iloc[0]
-                    # print(column)
                     max_fluor = experiment_blank_data[column].iloc[0]
                     min_fluor_c = experiment_blank_data['No Pep'+' '+dye].iloc[0]
                     val = analyte_experiment_data[column].astype('float').values[0]
@@ -128,30 +125,22 @@ def min_max_scale(processed_data):
                         scaled_val = np.nan
                     else:
                         if column == 'No Pep'+' '+dye:
-                            # print(val)
-                            # print(min_fluor_an)
-                            # print(max_fluor)
                             scaled_val = (val-min_fluor_an) / (max_fluor-min_fluor_an)
-                            # print(scaled_val)
                         else:
                             scaled_val = np.nan
                             print('Warning - min and max fluor readings for analyte {},'
                                 ' peptide {} and dye {} on plate are the same'.format(analyte, column, dye))
-                    # print(column)
                     if len(min_max_data) == 0:
                         min_max_data = pd.DataFrame(
                         {'EXPERIMENT_ID':experiment, 'ANALYTE_ID':analyte, column:scaled_val}, index=[0])
-                        # print(min_max_data)
                     else:
                         min_max_data = min_max_data.merge(pd.DataFrame(
                             {'EXPERIMENT_ID':experiment, 'ANALYTE_ID':analyte, column:scaled_val}, index=[0]),
                                                            on=['ANALYTE_ID', 'EXPERIMENT_ID'])
-            # print(min_max_data)
             scaled_plate[analyte] = min_max_data
 
         try:
             scaled_data_dyes_combined = pd.concat(scaled_plate)
-            # print(scaled_data_dyes_combined)
         except:
             scaled_data_dyes_combined = pd.DataFrame.from_dict(scaled_plate)
         scaled_data_dyes_combined.reset_index(drop=True, inplace=True)
@@ -199,7 +188,6 @@ def connect_to_db(username):
     try:
         cx_Oracle.init_oracle_client(lib_dir=ORACLE_HOME)
     except Exception as err:
-        # print("Whoops!")
         print(err)
     os.environ['TNS_ADMIN'] = ORACLE_HOME+'/network/admin'
     conn = cx_Oracle.connect(user, password, sid)
@@ -525,9 +513,6 @@ def human_serum_quality_check(queried_data):
     )]
 
     outlier_counts = pd.DataFrame(outliers['PLATE_ID'].value_counts())
-
-    # outlier_plates = outlier_counts.loc[outlier_counts.PLATE_ID>80]
-    # outlier_plates
 
     print(outlier_counts)
 
